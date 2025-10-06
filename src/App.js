@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Droplet, Share2, Lightbulb, Trophy } from 'lucide-react';
+import { Droplet, Share2, Lightbulb, Trophy, MessageSquare, Star } from 'lucide-react';
 import { Analytics } from '@vercel/analytics/react';
 
 const ColorAlchemyGame = () => {
-    const [gameMode, setGameMode] = useState('daily'); // 'daily' or 'levels'
+    const [gameMode, setGameMode] = useState('daily');
     const [selectedColors, setSelectedColors] = useState([]);
     const [currentMix, setCurrentMix] = useState({ r: 255, g: 255, b: 255 });
     const [palette, setPalette] = useState([]);
@@ -12,7 +12,19 @@ const ColorAlchemyGame = () => {
     const [gameWon, setGameWon] = useState(false);
     const [hasPlayedDaily, setHasPlayedDaily] = useState(false);
     const [currentLevel, setCurrentLevel] = useState(null);
-    const maxMoves = 15;
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [feedback, setFeedback] = useState('');
+    const [rating, setRating] = useState(0);
+
+    // Define max moves per level
+    const levelSettings = [
+        { maxMoves: 15, name: 'Beginner (Pastel)' },
+        { maxMoves: 12, name: 'Intermediate (Neon)' },
+        { maxMoves: 10, name: 'Advanced (Earthy)' },
+        { maxMoves: 8, name: 'Expert (Monochrome)' },
+        { maxMoves: 10, name: 'Master (Vibrant)' },
+        { maxMoves: 9, name: 'Legendary (Random)' }
+    ];
 
     // Generate daily seed
     const getDailySeed = () => {
@@ -55,6 +67,7 @@ const ColorAlchemyGame = () => {
             b: Math.floor(random() * 256)
         };
 
+        // Base palette for daily mode
         const basePalette = [
             { r: 255, g: 0, b: 0, name: 'Red' },
             { r: 255, g: 165, b: 0, name: 'Orange' },
@@ -63,19 +76,70 @@ const ColorAlchemyGame = () => {
             { r: 0, g: 0, b: 255, name: 'Blue' },
             { r: 128, g: 0, b: 128, name: 'Purple' },
             { r: 255, g: 255, b: 255, name: 'White' },
-            { r: 0, g: 0, b: 0, name: 'Black' },
+            { r: 0, g: 0, b: 0, name: 'Black' }
         ];
 
-        // Vary palette for levels
-        if (!isDaily && level) {
-            const levelPalette = [...basePalette];
-            if (level % 2 === 0) {
-                levelPalette.push({ r: 139, g: 69, b: 19, name: 'Brown' });
-            }
-            if (level % 3 === 0) {
-                levelPalette.splice(2, 1); // Remove Yellow for variety
-            }
-            return { target, palette: levelPalette };
+        // Thematic palettes for levels
+        const pastelPalette = [
+            { r: 255, g: 182, b: 193, name: 'Baby Pink' },
+            { r: 173, g: 216, b: 230, name: 'Light Blue' },
+            { r: 245, g: 245, b: 220, name: 'Beige' },
+            { r: 152, g: 251, b: 152, name: 'Pale Green' },
+            { r: 240, g: 230, b: 140, name: 'Khaki' },
+            { r: 221, g: 160, b: 221, name: 'Plum' },
+            { r: 245, g: 222, b: 179, name: 'Wheat' },
+            { r: 255, g: 245, b: 238, name: 'Seashell' }
+        ];
+
+        const neonPalette = [
+            { r: 255, g: 0, b: 255, name: 'Magenta' },
+            { r: 0, g: 255, b: 255, name: 'Cyan' },
+            { r: 255, g: 255, b: 0, name: 'Neon Yellow' },
+            { r: 0, g: 255, b: 0, name: 'Neon Green' },
+            { r: 255, g: 69, b: 0, name: 'Neon Orange' },
+            { r: 138, g: 43, b: 226, name: 'Electric Purple' },
+            { r: 255, g: 20, b: 147, name: 'Hot Pink' }
+        ];
+
+        const earthyPalette = [
+            { r: 139, g: 69, b: 19, name: 'Saddle Brown' },
+            { r: 107, g: 142, b: 35, name: 'Olive' },
+            { r: 160, g: 82, b: 45, name: 'Sienna' },
+            { r: 85, g: 107, b: 47, name: 'Dark Olive' },
+            { r: 210, g: 180, b: 140, name: 'Tan' },
+            { r: 189, g: 183, b: 107, name: 'Dark Khaki' },
+            { r: 143, g: 188, b: 143, name: 'Sea Green' },
+            { r: 205, g: 133, b: 63, name: 'Peru' },
+            { r: 244, g: 164, b: 96, name: 'Sandy Brown' }
+        ];
+
+        const monochromePalette = [
+            { r: 255, g: 255, b: 255, name: 'White' },
+            { r: 192, g: 192, b: 192, name: 'Silver' },
+            { r: 128, g: 128, b: 128, name: 'Gray' },
+            { r: 64, g: 64, b: 64, name: 'Dark Gray' },
+            { r: 32, g: 32, b: 32, name: 'Charcoal' },
+            { r: 0, g: 0, b: 0, name: 'Black' }
+        ];
+
+        const vibrantPalette = [
+            { r: 255, g: 0, b: 0, name: 'Red' },
+            { r: 0, g: 255, b: 0, name: 'Green' },
+            { r: 0, g: 0, b: 255, name: 'Blue' },
+            { r: 255, g: 255, b: 0, name: 'Yellow' },
+            { r: 255, g: 105, b: 180, name: 'Pink' },
+            { r: 0, g: 255, b: 255, name: 'Cyan' },
+            { r: 255, g: 165, b: 0, name: 'Orange' },
+            { r: 148, g: 0, b: 211, name: 'Violet' }
+        ];
+
+        const allColors = [...basePalette, ...pastelPalette, ...neonPalette, ...earthyPalette, ...monochromePalette, ...vibrantPalette];
+        const randomPalette = Array.from({ length: 7 }, () => allColors[Math.floor(random() * allColors.length)]);
+
+        // Select palette based on level
+        if (!isDaily && level !== null) {
+            const palettes = [pastelPalette, neonPalette, earthyPalette, monochromePalette, vibrantPalette, randomPalette];
+            return { target, palette: palettes[level] };
         }
 
         return { target, palette: basePalette };
@@ -121,7 +185,7 @@ const ColorAlchemyGame = () => {
     };
 
     const addColorToPalette = (color) => {
-        if (gameWon || moves >= maxMoves || (gameMode === 'daily' && hasPlayedDaily)) return;
+        if (gameWon || moves >= (gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxMoves) || (gameMode === 'daily' && hasPlayedDaily)) return;
 
         const newSelected = [...selectedColors, color];
         setSelectedColors(newSelected);
@@ -141,7 +205,7 @@ const ColorAlchemyGame = () => {
                 localStorage.setItem('dailyCurrentMix', JSON.stringify(newMix));
                 setHasPlayedDaily(true);
             }
-        } else if (moves + 1 >= maxMoves && gameMode === 'daily') {
+        } else if (moves + 1 >= (gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxMoves) && gameMode === 'daily') {
             const today = new Date().toISOString().split('T')[0];
             localStorage.setItem('lastPlayedDate', today);
             localStorage.setItem('dailyMoves', moves + 1);
@@ -172,14 +236,11 @@ const ColorAlchemyGame = () => {
     const shareResults = () => {
         const emoji = gameWon ? '🎯' : '😅';
         const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
-        const score = gameWon ? `${moves} moves` : `X/${maxMoves}`;
+        const score = gameWon ? `${moves} moves` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxMoves}`;
         const today = new Date().toISOString().split('T')[0];
         const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nDate: ${today}\nPlay at: https://color-alchemy-game.vercel.app`;
 
-        // Copy to clipboard
         navigator.clipboard.writeText(text);
-
-        // Open Twitter/X share window
         const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(tweetUrl, '_blank');
 
@@ -191,6 +252,33 @@ const ColorAlchemyGame = () => {
         setGameMode('levels');
     };
 
+    const handleFeedbackSubmit = async (e) => {
+        e.preventDefault();
+        if (feedback.trim() || rating > 0) {
+            const today = new Date().toISOString();
+            const formData = new FormData();
+            formData.append('entry.1714569215', feedback); // Replace with your Google Form Feedback field ID
+            formData.append('entry.89785459', today); // Replace with your Google Form Timestamp field ID
+            formData.append('entry.1130434173', gameMode); // Replace with your Google Form Game Mode field ID
+            formData.append('entry.283003954', rating.toString()); // Replace with your Google Form Rating field ID
+
+            try {
+                await fetch('https://docs.google.com/forms/d/e/1FAIpQLSc8XvCmItL6BnF5E7owROlMvc-RDNTMfx0dkiVD86V0L3oe7Q/formResponse', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: formData
+                });
+                setFeedback('');
+                setRating(0);
+                setShowFeedbackModal(false);
+                alert('Thank you for your feedback!');
+            } catch (error) {
+                console.error('Feedback submission failed:', error);
+                alert('Error submitting feedback. Please try again.');
+            }
+        }
+    };
+
     const accuracy = calculateColorDifference(currentMix, targetColor);
 
     return (
@@ -200,13 +288,22 @@ const ColorAlchemyGame = () => {
                     <h1 className="text-2xl md:text-3xl font-bold text-white">
                         Color Alchemy {gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`}
                     </h1>
-                    <div className="text-white font-bold">Moves: {moves}/{maxMoves}</div>
+                    <div className="flex items-center gap-4">
+                        <div className="text-white font-bold">Moves: {moves}/{gameMode === 'daily' ? 15 : levelSettings[currentLevel]?.maxMoves}</div>
+                        <button
+                            onClick={() => setShowFeedbackModal(true)}
+                            className="text-white hover:bg-white/20 px-3 py-1 rounded-lg transition flex items-center gap-1"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                            Feedback
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-2xl p-4 md:p-6 mb-4">
                     <div className="text-center mb-4">
                         <h2 className="text-xl font-bold text-gray-800 mb-2">
-                            {gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`}
+                            {gameMode === 'daily' ? 'Daily Challenge' : levelSettings[currentLevel]?.name}
                         </h2>
                         <p className="text-gray-600 text-sm">Mix colors to match the target</p>
                     </div>
@@ -254,23 +351,23 @@ const ColorAlchemyGame = () => {
                     {gameMode === 'levels' && (
                         <div className="mb-4">
                             <h3 className="font-bold text-gray-800 text-sm mb-2">Select Level</h3>
-                            <div className="grid grid-cols-4 gap-2">
-                                {[0, 1, 2, 3].map((level) => (
+                            <div className="grid grid-cols-3 gap-2">
+                                {levelSettings.map((level, index) => (
                                     <button
-                                        key={level}
-                                        onClick={() => handleLevelSelect(level)}
+                                        key={index}
+                                        onClick={() => handleLevelSelect(index)}
                                         className={`p-2 rounded-lg font-bold text-sm ${
-                                            currentLevel === level ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                            currentLevel === index ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                                         }`}
                                     >
-                                        Level {level + 1}
+                                        {level.name}
                                     </button>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {!gameWon && moves < maxMoves && !(gameMode === 'daily' && hasPlayedDaily) && (
+                    {!gameWon && moves < (gameMode === 'daily' ? 15 : levelSettings[currentLevel]?.maxMoves) && !(gameMode === 'daily' && hasPlayedDaily) && (
                         <>
                             <div className="mb-4">
                                 <div className="flex items-center justify-between mb-2">
@@ -326,7 +423,7 @@ const ColorAlchemyGame = () => {
                         </>
                     )}
 
-                    {(gameWon || moves >= maxMoves || (gameMode === 'daily' && hasPlayedDaily)) && (
+                    {(gameWon || moves >= (gameMode === 'daily' ? 15 : levelSettings[currentLevel]?.maxMoves) || (gameMode === 'daily' && hasPlayedDaily)) && (
                         <div className={`p-4 rounded-lg text-white text-center ${
                             gameWon ? 'bg-gradient-to-r from-green-400 to-emerald-500' : 'bg-gradient-to-r from-red-400 to-pink-500'
                         }`}>
@@ -381,6 +478,59 @@ const ColorAlchemyGame = () => {
                         Levels
                     </button>
                 </div>
+
+                {showFeedbackModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                        <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <MessageSquare className="w-5 h-5" />
+                                Feedback
+                            </h2>
+                            <form onSubmit={handleFeedbackSubmit}>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 font-semibold mb-2">Rate your experience</label>
+                                    <div className="flex gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setRating(star)}
+                                                className={`p-1 ${rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+                                            >
+                                                <Star className="w-6 h-6 fill-current" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <textarea
+                                    value={feedback}
+                                    onChange={(e) => setFeedback(e.target.value)}
+                                    placeholder="Share your thoughts or suggestions..."
+                                    className="w-full h-32 p-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none resize-none text-gray-700"
+                                />
+                                <div className="flex justify-end gap-3 mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowFeedbackModal(false);
+                                            setRating(0);
+                                            setFeedback('');
+                                        }}
+                                        className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                                    >
+                                        Submit
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </div>
             <Analytics />
         </div>
