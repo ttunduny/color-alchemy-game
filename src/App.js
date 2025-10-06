@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Droplet, Share2, Lightbulb, Trophy } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 
 const ColorAlchemyGame = () => {
     const [gameMode, setGameMode] = useState('daily'); // 'daily' or 'levels'
@@ -173,7 +174,7 @@ const ColorAlchemyGame = () => {
         const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
         const score = gameWon ? `${moves} moves` : `X/${maxMoves}`;
         const today = new Date().toISOString().split('T')[0];
-        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nDate: ${today}\nPlay at: [your-game-url]`;
+        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nDate: ${today}\nPlay at: https://color-alchemy-game.vercel.app`;
 
         // Copy to clipboard
         navigator.clipboard.writeText(text);
@@ -282,7 +283,6 @@ const ColorAlchemyGame = () => {
                                         Reset
                                     </button>
                                 </div>
-                                {/* Color palette buttons increased to w-10 h-10 */}
                                 <div className="grid grid-cols-4 gap-2">
                                     {palette.map((color, i) => (
                                         <button
@@ -382,6 +382,7 @@ const ColorAlchemyGame = () => {
                     </button>
                 </div>
             </div>
+            <Analytics />
         </div>
     );
 };
