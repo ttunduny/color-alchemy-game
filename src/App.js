@@ -17,6 +17,9 @@ const ColorAlchemyGame = () => {
     const [gameMode, setGameMode] = useState('daily');
     const [currentMix, setCurrentMix] = useState({ r: 128, g: 128, b: 128 });
     const [targetColor, setTargetColor] = useState({ r: 255, g: 255, b: 255 });
+    const [targetColors, setTargetColors] = useState([{ r: 255, g: 255, b: 255 }]);
+    const [currentColorIndex, setCurrentColorIndex] = useState(0);
+    const [unlockedLevels, setUnlockedLevels] = useState([0]); // Level 1 is always unlocked
     const [attempts, setAttempts] = useState(0);
     const [gameWon, setGameWon] = useState(false);
     const [hasPlayedDaily, setHasPlayedDaily] = useState(false);
@@ -44,14 +47,172 @@ const ColorAlchemyGame = () => {
             });
     }, []);
 
-    // Define max attempts and dynamic settings per level
+    // Define progressive level system with increasing difficulty and multi-color challenges
     const levelSettings = [
-        { maxAttempts: 15, name: 'Beginner', difficulty: 'Easy' },
-        { maxAttempts: 12, name: 'Intermediate', difficulty: 'Medium' },
-        { maxAttempts: 10, name: 'Advanced', difficulty: 'Hard' },
-        { maxAttempts: 8, name: 'Expert', difficulty: 'Very Hard' },
-        { maxAttempts: 10, name: 'Master', difficulty: 'Extreme' },
-        { maxAttempts: 9, name: 'Legendary', difficulty: 'Impossible' }
+        // Single color levels (1-10)
+        { 
+            level: 1,
+            maxAttempts: 25, 
+            name: 'Level 1', 
+            difficulty: 'Very Easy',
+            colorCount: 1,
+            colorRange: { min: 50, max: 100, step: 5 },
+            description: 'Start with warm colors'
+        },
+        { 
+            level: 2,
+            maxAttempts: 22, 
+            name: 'Level 2', 
+            difficulty: 'Easy',
+            colorCount: 1,
+            colorRange: { min: 100, max: 150, step: 4 },
+            description: 'Cool color tones'
+        },
+        { 
+            level: 3,
+            maxAttempts: 20, 
+            name: 'Level 3', 
+            difficulty: 'Easy+',
+            colorCount: 1,
+            colorRange: { min: 150, max: 200, step: 3 },
+            description: 'Bright vibrant colors'
+        },
+        { 
+            level: 4,
+            maxAttempts: 18, 
+            name: 'Level 4', 
+            difficulty: 'Medium',
+            colorCount: 1,
+            colorRange: { min: 40, max: 215, step: 2 },
+            description: 'More varied color spectrum'
+        },
+        { 
+            level: 5,
+            maxAttempts: 16, 
+            name: 'Level 5', 
+            difficulty: 'Medium+',
+            colorCount: 1,
+            colorRange: { min: 20, max: 235, step: 2 },
+            description: 'Full color range unlocked'
+        },
+        { 
+            level: 6,
+            maxAttempts: 14, 
+            name: 'Level 6', 
+            difficulty: 'Hard',
+            colorCount: 1,
+            colorRange: { min: 10, max: 245, step: 1 },
+            description: 'Precision becomes important'
+        },
+        { 
+            level: 7,
+            maxAttempts: 12, 
+            name: 'Level 7', 
+            difficulty: 'Hard+',
+            colorCount: 1,
+            colorRange: { min: 5, max: 250, step: 1 },
+            description: 'Subtle color variations'
+        },
+        { 
+            level: 8,
+            maxAttempts: 10, 
+            name: 'Level 8', 
+            difficulty: 'Very Hard',
+            colorCount: 1,
+            colorRange: { min: 0, max: 255, step: 1 },
+            description: 'Master single color precision'
+        },
+        { 
+            level: 9,
+            maxAttempts: 8, 
+            name: 'Level 9', 
+            difficulty: 'Expert',
+            colorCount: 1,
+            colorRange: { min: 0, max: 255, step: 1 },
+            description: 'Ultimate single color challenge'
+        },
+        { 
+            level: 10,
+            maxAttempts: 6, 
+            name: 'Level 10', 
+            difficulty: 'Master',
+            colorCount: 1,
+            colorRange: { min: 0, max: 255, step: 1 },
+            description: 'Perfect single color mastery'
+        },
+        // Multi-color levels (11+)
+        { 
+            level: 11,
+            maxAttempts: 20, 
+            name: 'Level 11', 
+            difficulty: 'Multi-Color',
+            colorCount: 2,
+            colorRange: { min: 50, max: 205, step: 3 },
+            description: 'Match 2 colors simultaneously'
+        },
+        { 
+            level: 12,
+            maxAttempts: 18, 
+            name: 'Level 12', 
+            difficulty: 'Multi-Color',
+            colorCount: 2,
+            colorRange: { min: 30, max: 225, step: 2 },
+            description: 'Two colors, increased precision'
+        },
+        { 
+            level: 13,
+            maxAttempts: 16, 
+            name: 'Level 13', 
+            difficulty: 'Multi-Color',
+            colorCount: 2,
+            colorRange: { min: 10, max: 245, step: 1 },
+            description: 'Precise dual color matching'
+        },
+        { 
+            level: 14,
+            maxAttempts: 15, 
+            name: 'Level 14', 
+            difficulty: 'Multi-Color',
+            colorCount: 3,
+            colorRange: { min: 40, max: 215, step: 2 },
+            description: 'Three color challenge begins'
+        },
+        { 
+            level: 15,
+            maxAttempts: 12, 
+            name: 'Level 15', 
+            difficulty: 'Multi-Color',
+            colorCount: 3,
+            colorRange: { min: 20, max: 235, step: 1 },
+            description: 'Master three color harmony'
+        },
+        { 
+            level: 16,
+            maxAttempts: 10, 
+            name: 'Level 16', 
+            difficulty: 'Multi-Color',
+            colorCount: 4,
+            colorRange: { min: 30, max: 225, step: 1 },
+            description: 'Four color symphony'
+        },
+        { 
+            level: 17,
+            maxAttempts: 8, 
+            name: 'Level 17', 
+            difficulty: 'Multi-Color',
+            colorCount: 4,
+            colorRange: { min: 0, max: 255, step: 1 },
+            description: 'Ultimate four color mastery'
+        },
+        { 
+            level: 18,
+            maxAttempts: 6, 
+            name: 'Level 18', 
+            difficulty: 'Legendary',
+            colorCount: 5,
+            colorRange: { min: 0, max: 255, step: 1 },
+            description: 'Legendary five color challenge'
+        }
     ];
 
     // Generate daily seed
@@ -69,7 +230,7 @@ const ColorAlchemyGame = () => {
         }
     };
 
-    // Check if daily challenge was played
+    // Check if daily challenge was played and load unlocked levels
     useEffect(() => {
         const today = new Date().toISOString().split('T')[0];
         const lastPlayed = localStorage.getItem('lastPlayedDate');
@@ -84,47 +245,139 @@ const ColorAlchemyGame = () => {
             const storedHints = parseInt(localStorage.getItem('dailyHintsUsed') || '0');
             setHintsUsed(storedHints);
         }
+        
+        // Load unlocked levels
+        const storedUnlockedLevels = localStorage.getItem('unlockedLevels');
+        if (storedUnlockedLevels) {
+            setUnlockedLevels(JSON.parse(storedUnlockedLevels));
+        }
     }, []);
 
-    // Generate daily or level challenge
+    // Generate daily or level challenge with progressive difficulty
     const generateColorChallenge = (isDaily = true, level = null) => {
-        const random = mulberry32(isDaily ? getDailySeed() : level);
-        const target = {
-            r: Math.floor(random() * 200 + 28),
-            g: Math.floor(random() * 200 + 28),
-            b: Math.floor(random() * 200 + 28)
-        };
-
-        return { target };
+        // Use timestamp for more dynamic colors, even for the same level
+        const timestamp = Date.now();
+        const randomOffset = Math.floor(Math.random() * 100000);
+        const seed = isDaily ? getDailySeed() : (level * 100000 + timestamp + randomOffset);
+        console.log(`Generating colors with seed: ${seed} for level ${level + 1}`);
+        const random = mulberry32(seed);
+        
+        if (isDaily) {
+            // Daily challenge uses medium difficulty
+            const target = {
+                r: Math.floor(random() * 200 + 28),
+                g: Math.floor(random() * 200 + 28),
+                b: Math.floor(random() * 200 + 28)
+            };
+            return { target, targets: [target] };
+        } else {
+            // Level-based challenge uses progressive difficulty
+            // level is 0-indexed, so level 1 = index 0, level 2 = index 1, etc.
+            const levelConfig = levelSettings[level];
+            if (!levelConfig) {
+                // Fallback to first level if invalid level
+                const fallbackConfig = levelSettings[0];
+                const { min, max, step } = fallbackConfig.colorRange;
+                const { colorCount } = fallbackConfig;
+                const generateColorValue = () => {
+                    const range = max - min;
+                    const steps = Math.floor(range / step);
+                    const randomStep = Math.floor(random() * (steps + 1));
+                    return min + (randomStep * step);
+                };
+                const generateSingleColor = () => ({
+                    r: generateColorValue(),
+                    g: generateColorValue(),
+                    b: generateColorValue()
+                });
+                const targets = [];
+                for (let i = 0; i < colorCount; i++) {
+                    targets.push(generateSingleColor());
+                }
+                return { target: targets[0], targets };
+            }
+            const { min, max, step } = levelConfig.colorRange;
+            const { colorCount } = levelConfig;
+            console.log(`Level ${level + 1} config:`, { min, max, step, colorCount });
+            console.log(`Level config object:`, levelConfig);
+            console.log(`Color count: ${colorCount}, type: ${typeof colorCount}`);
+            
+            // Generate colors within the level's range
+            const generateColorValue = () => {
+                const range = max - min;
+                const steps = Math.floor(range / step);
+                const randomStep = Math.floor(random() * (steps + 1));
+                const value = min + (randomStep * step);
+                console.log(`Generated color value: ${value} (range: ${min}-${max}, step: ${step})`);
+                return value;
+            };
+            
+            // Add some randomness to ensure different colors each time
+            const addRandomVariation = (value) => {
+                const variation = Math.floor(random() * 3) - 1; // -1, 0, or 1
+                return Math.max(min, Math.min(max, value + variation));
+            };
+            
+            const generateSingleColor = () => ({
+                r: addRandomVariation(generateColorValue()),
+                g: addRandomVariation(generateColorValue()),
+                b: addRandomVariation(generateColorValue())
+            });
+            
+            // Generate multiple colors for multi-color levels
+            const targets = [];
+            console.log(`Generating ${colorCount} colors for level ${level + 1}`);
+            for (let i = 0; i < colorCount; i++) {
+                const color = generateSingleColor();
+                console.log(`Generated color ${i + 1}:`, color);
+                targets.push(color);
+            }
+            
+            console.log(`Generated colors for level ${level + 1}:`, targets);
+            return { target: targets[0], targets };
+        }
     };
 
     // Initialize game
     useEffect(() => {
         if (gameMode === 'daily') {
-            const { target } = generateColorChallenge(true);
-            setTargetColor(target);
-            setCurrentMix({ r: 128, g: 128, b: 128 });
-            setAttempts(0);
-            setGameWon(false);
-            setShowHint(false);
-            setHintsUsed(0);
+            const { target, targets } = generateColorChallenge(true);
+            if (target && targets) {
+                setTargetColor(target);
+                setTargetColors(targets);
+                setCurrentMix({ r: 128, g: 128, b: 128 });
+                setCurrentColorIndex(0);
+                setAttempts(0);
+                setGameWon(false);
+                setShowHint(false);
+                setHintsUsed(0);
+            }
         } else if (gameMode === 'levels' && currentLevel !== null) {
-            const { target } = generateColorChallenge(false, currentLevel);
-            setTargetColor(target);
-            setCurrentMix({ r: 128, g: 128, b: 128 });
-            setAttempts(0);
-            setGameWon(false);
-            setShowHint(false);
-            setHintsUsed(0);
+            const { target, targets } = generateColorChallenge(false, currentLevel);
+            if (target && targets) {
+                setTargetColor(target);
+                setTargetColors(targets);
+                setCurrentMix({ r: 128, g: 128, b: 128 });
+                setCurrentColorIndex(0);
+                setAttempts(0);
+                setGameWon(false);
+                setShowHint(false);
+                setHintsUsed(0);
+            }
         }
     }, [gameMode, currentLevel]);
 
-    // Handle RGB slider changes (no move counter here)
+    // Handle RGB slider changes with mobile optimization
     const handleSliderChange = (channel, value) => {
         if (gameWon || (gameMode === 'daily' && hasPlayedDaily)) return;
 
         const newMix = { ...currentMix, [channel]: parseInt(value) };
         setCurrentMix(newMix);
+    };
+
+    // Handle touch events for better mobile experience
+    const handleTouchStart = (e) => {
+        e.preventDefault();
     };
 
     // Check match button - this counts as an attempt
@@ -134,9 +387,24 @@ const ColorAlchemyGame = () => {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
 
-        const diff = calculateColorDifference(currentMix, targetColor);
+        const currentTarget = (targetColors && targetColors[currentColorIndex]) || targetColor;
+        if (!currentTarget) return;
+        
+        const diff = calculateColorDifference(currentMix, currentTarget);
         
         if (diff >= 95) {
+            // Check if this is a multi-color level and we need to match more colors
+            if (gameMode === 'levels' && targetColors.length > 1) {
+                if (currentColorIndex < targetColors.length - 1) {
+                    // Move to next color
+                    setCurrentColorIndex(currentColorIndex + 1);
+                    setCurrentMix({ r: 128, g: 128, b: 128 }); // Reset mix for next color
+                    setShowHint(false);
+                    return;
+                }
+            }
+            
+            // All colors matched or single color matched
             setGameWon(true);
             if (confettiLoaded && window.confetti) {
                 window.confetti({
@@ -146,6 +414,15 @@ const ColorAlchemyGame = () => {
                 });
             }
             winSound.play().catch(error => console.error('Sound playback failed:', error));
+            
+            // Unlock next level if in levels mode
+            if (gameMode === 'levels' && currentLevel !== null) {
+                const nextLevel = currentLevel + 1;
+                if (nextLevel < levelSettings.length && !unlockedLevels.includes(nextLevel)) {
+                    setUnlockedLevels([...unlockedLevels, nextLevel]);
+                    localStorage.setItem('unlockedLevels', JSON.stringify([...unlockedLevels, nextLevel]));
+                }
+            }
             
             if (gameMode === 'daily') {
                 const today = new Date().toISOString().split('T')[0];
@@ -176,9 +453,39 @@ const ColorAlchemyGame = () => {
         setGameWon(false);
         setShowHint(false);
         setHintsUsed(0);
+        setCurrentColorIndex(0);
+    };
+
+    const generateNewChallenge = () => {
+        if (gameMode === 'daily') {
+            const { target, targets } = generateColorChallenge(true);
+            if (target && targets) {
+                setTargetColor(target);
+                setTargetColors(targets);
+            }
+        } else if (gameMode === 'levels' && currentLevel !== null) {
+            const { target, targets } = generateColorChallenge(false, currentLevel);
+            if (target && targets) {
+                setTargetColor(target);
+                setTargetColors(targets);
+            }
+        }
+        // Reset game state for new challenge
+        setCurrentMix({ r: 128, g: 128, b: 128 });
+        setAttempts(0);
+        setGameWon(false);
+        setShowHint(false);
+        setHintsUsed(0);
+        setCurrentColorIndex(0);
     };
 
     const calculateColorDifference = (color1, color2) => {
+        if (!color1 || !color2 || 
+            typeof color1.r !== 'number' || typeof color1.g !== 'number' || typeof color1.b !== 'number' ||
+            typeof color2.r !== 'number' || typeof color2.g !== 'number' || typeof color2.b !== 'number') {
+            return 0;
+        }
+        
         const diff = Math.sqrt(
             Math.pow(color1.r - color2.r, 2) +
             Math.pow(color1.g - color2.g, 2) +
@@ -189,19 +496,22 @@ const ColorAlchemyGame = () => {
 
     // Hint system
     const getHintMessage = () => {
+        const currentTarget = (targetColors && targetColors[currentColorIndex]) || targetColor;
+        if (!currentTarget) return 'No target color available';
+        
         const hints = [];
         const threshold = 30;
         
-        if (Math.abs(targetColor.r - currentMix.r) > threshold) {
-            hints.push(targetColor.r > currentMix.r ? '🔴 Need more Red' : '🔴 Less Red needed');
+        if (Math.abs(currentTarget.r - currentMix.r) > threshold) {
+            hints.push(currentTarget.r > currentMix.r ? '🔴 Need more Red' : '🔴 Less Red needed');
         }
         
-        if (Math.abs(targetColor.g - currentMix.g) > threshold) {
-            hints.push(targetColor.g > currentMix.g ? '🟢 Need more Green' : '🟢 Less Green needed');
+        if (Math.abs(currentTarget.g - currentMix.g) > threshold) {
+            hints.push(currentTarget.g > currentMix.g ? '🟢 Need more Green' : '🟢 Less Green needed');
         }
         
-        if (Math.abs(targetColor.b - currentMix.b) > threshold) {
-            hints.push(targetColor.b > currentMix.b ? '🔵 Need more Blue' : '🔵 Less Blue needed');
+        if (Math.abs(currentTarget.b - currentMix.b) > threshold) {
+            hints.push(currentTarget.b > currentMix.b ? '🔵 Need more Blue' : '🔵 Less Blue needed');
         }
 
         if (hints.length === 0) {
@@ -212,7 +522,10 @@ const ColorAlchemyGame = () => {
     };
 
     const getAccuracyHint = () => {
-        const diff = calculateColorDifference(currentMix, targetColor);
+        const currentTarget = (targetColors && targetColors[currentColorIndex]) || targetColor;
+        if (!currentTarget) return '🎯 No target available';
+        
+        const diff = calculateColorDifference(currentMix, currentTarget);
         return `🎯 Current Match: ${diff}%`;
     };
 
@@ -236,8 +549,25 @@ const ColorAlchemyGame = () => {
     };
 
     const handleLevelSelect = (level) => {
+        console.log(`Selecting level ${level + 1} (index ${level})`);
         setCurrentLevel(level);
         setGameMode('levels');
+        // Reset game state when switching levels
+        setGameWon(false);
+        setAttempts(0);
+        setShowHint(false);
+        setHintsUsed(0);
+        setCurrentColorIndex(0);
+        setCurrentMix({ r: 128, g: 128, b: 128 });
+        
+        // Generate new colors for the selected level
+        const { target, targets } = generateColorChallenge(false, level);
+        console.log('Generated target:', target);
+        console.log('Generated targets:', targets);
+        if (target && targets) {
+            setTargetColor(target);
+            setTargetColors(targets);
+        }
     };
 
     const handleFeedbackSubmit = async (e) => {
@@ -270,36 +600,67 @@ const ColorAlchemyGame = () => {
         }
     };
 
-    const accuracy = calculateColorDifference(currentMix, targetColor);
+    const currentTarget = (targetColors && targetColors[currentColorIndex]) || targetColor;
+    const accuracy = (currentTarget && currentMix) ? calculateColorDifference(currentMix, currentTarget) : 0;
     const maxAttempts = gameMode === 'daily' ? 15 : levelSettings[currentLevel]?.maxAttempts || 15;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+        <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
             <div className="max-w-3xl mx-auto">
                 {/* Header with Mode Tabs */}
-                <div className="mb-6">
-                    <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-6">
+                <div className="mb-4 sm:mb-6">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 text-center mb-4 sm:mb-6">
                         🎨 Color Alchemy
                     </h1>
                     
                     {/* Mode Tabs */}
-                    <div className="flex gap-2 bg-white rounded-xl p-2 shadow-md mb-4">
+                    <div className="flex gap-1 sm:gap-2 bg-white rounded-xl p-1 sm:p-2 shadow-md mb-4">
                         <button
-                            onClick={() => setGameMode('daily')}
-                            className={`flex-1 px-6 py-3 rounded-lg font-bold text-sm transition-all ${
+                            onClick={() => {
+                                setGameMode('daily');
+                                // Reset game state when switching to daily
+                                setGameWon(false);
+                                setAttempts(0);
+                                setShowHint(false);
+                                setHintsUsed(0);
+                                setCurrentColorIndex(0);
+                                setCurrentMix({ r: 128, g: 128, b: 128 });
+                                // Generate new daily colors
+                                const { target, targets } = generateColorChallenge(true);
+                                if (target && targets) {
+                                    setTargetColor(target);
+                                    setTargetColors(targets);
+                                }
+                            }}
+                            className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm transition-all ${
                                 gameMode === 'daily' 
                                     ? 'bg-purple-600 text-white shadow-md' 
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                             }`}
                         >
-                            Daily Challenge
+                            <span className="hidden sm:inline">Daily Challenge</span>
+                            <span className="sm:hidden">Daily</span>
                         </button>
                         <button
                             onClick={() => {
                                 setGameMode('levels');
                                 if (currentLevel === null) setCurrentLevel(0);
+                                // Reset game state when switching to levels
+                                setGameWon(false);
+                                setAttempts(0);
+                                setShowHint(false);
+                                setHintsUsed(0);
+                                setCurrentColorIndex(0);
+                                setCurrentMix({ r: 128, g: 128, b: 128 });
+                                // Generate new level colors
+                                const level = currentLevel === null ? 0 : currentLevel;
+                                const { target, targets } = generateColorChallenge(false, level);
+                                if (target && targets) {
+                                    setTargetColor(target);
+                                    setTargetColors(targets);
+                                }
                             }}
-                            className={`flex-1 px-6 py-3 rounded-lg font-bold text-sm transition-all ${
+                            className={`flex-1 px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm transition-all ${
                                 gameMode === 'levels' 
                                     ? 'bg-purple-600 text-white shadow-md' 
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -308,38 +669,16 @@ const ColorAlchemyGame = () => {
                             Levels
                         </button>
                     </div>
-
-                    {/* Level Selection (only visible in levels mode) */}
-                    {gameMode === 'levels' && (
-                        <div className="bg-white rounded-xl p-4 shadow-md">
-                            <h3 className="font-bold text-gray-800 text-sm mb-3">Select Level</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {levelSettings.map((level, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => handleLevelSelect(index)}
-                                        className={`p-3 rounded-lg font-bold text-sm transition-all ${
-                                            currentLevel === index 
-                                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md' 
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        {level.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
 
                 {/* Stats Bar */}
-                <div className="flex justify-between items-center mb-4 bg-white rounded-xl p-4 shadow-md">
+                <div className="flex justify-between items-center mb-4 bg-white rounded-xl p-3 sm:p-4 shadow-md">
                     <div>
-                        <div className="text-2xl font-bold text-gray-800">{attempts}/{maxAttempts}</div>
+                        <div className="text-xl sm:text-2xl font-bold text-gray-800">{attempts}/{maxAttempts}</div>
                         <div className="text-xs text-gray-600">Attempts</div>
                     </div>
                     <div className="text-center">
-                        <div className="text-lg font-bold text-purple-600">
+                        <div className="text-base sm:text-lg font-bold text-purple-600">
                             {gameMode === 'daily' ? 'Daily' : `Level ${currentLevel + 1}`}
                         </div>
                         <div className="text-xs text-gray-600">
@@ -348,33 +687,63 @@ const ColorAlchemyGame = () => {
                     </div>
                     <button
                         onClick={() => setShowFeedbackModal(true)}
-                        className="text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg transition flex items-center gap-2"
+                        className="text-gray-600 hover:bg-gray-100 px-2 sm:px-3 py-2 rounded-lg transition flex items-center gap-1 sm:gap-2"
                     >
                         <MessageSquare className="w-4 h-4" />
-                        <span className="text-xs font-medium">Feedback</span>
+                        <span className="text-xs font-medium hidden sm:inline">Feedback</span>
                     </button>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg p-6 mb-4">
-                    <div className="text-center mb-6">
-                        <p className="text-gray-600 text-sm">Adjust RGB sliders to match the target color</p>
+                <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-4">
+                    <div className="text-center mb-4 sm:mb-6">
+                        <p className="text-gray-600 text-xs sm:text-sm">Adjust RGB sliders to match the target color</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    {/* Multi-color target display */}
+                    {targetColors && targetColors.length > 1 && gameMode === 'levels' && (
+                        <div className="mb-4">
+                            <p className="text-xs font-semibold text-gray-600 mb-2 text-center">
+                                Target Colors ({currentColorIndex + 1}/{targetColors.length})
+                            </p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
+                                {targetColors.map((color, index) => (
+                                    <div key={index} className="text-center">
+                                        <div
+                                            className={`w-full h-12 sm:h-16 rounded-lg shadow-lg border-2 transition-all ${
+                                                index === currentColorIndex 
+                                                    ? 'border-purple-500 ring-2 ring-purple-200' 
+                                                    : index < currentColorIndex
+                                                        ? 'border-green-500'
+                                                        : 'border-gray-200'
+                                            }`}
+                                            style={{ backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})` }}
+                                        />
+                                        <div className="text-xs mt-1 font-mono bg-gray-100 py-1 rounded">
+                                            {index < currentColorIndex ? '✓' : index === currentColorIndex ? '→' : '?'}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                         <div>
-                            <p className="text-xs font-semibold text-gray-600 mb-1 text-center">Target Color</p>
+                            <p className="text-xs font-semibold text-gray-600 mb-2 text-center">
+                                {targetColors && targetColors.length > 1 ? `Target ${currentColorIndex + 1}` : 'Target Color'}
+                            </p>
                             <div
-                                className="w-full h-24 rounded-lg shadow-lg border-2 border-gray-200"
-                                style={{ backgroundColor: `rgb(${targetColor.r}, ${targetColor.g}, ${targetColor.b})` }}
+                                className="w-full h-24 sm:h-28 rounded-lg shadow-lg border-2 border-gray-200"
+                                style={{ backgroundColor: targetColor ? `rgb(${targetColor.r}, ${targetColor.g}, ${targetColor.b})` : 'rgb(255, 255, 255)' }}
                             />
                             <div className="mt-2 text-center text-xs font-mono bg-gray-100 py-1 rounded">
                                 RGB(?, ?, ?)
                             </div>
                         </div>
                         <div>
-                            <p className="text-xs font-semibold text-gray-600 mb-1 text-center">Your Mix</p>
+                            <p className="text-xs font-semibold text-gray-600 mb-2 text-center">Your Mix</p>
                             <div
-                                className={`w-full h-24 rounded-lg shadow-lg transition-all duration-300 ${
+                                className={`w-full h-24 sm:h-28 rounded-lg shadow-lg transition-all duration-300 ${
                                     gameWon ? 'animate-pulse border-4 border-green-500' : accuracy >= 95 ? 'border-4 border-green-500' : 'border-2 border-gray-200'
                                 }`}
                                 style={{
@@ -406,14 +775,14 @@ const ColorAlchemyGame = () => {
                     {!gameWon && attempts < maxAttempts && !(gameMode === 'daily' && hasPlayedDaily) && (
                         <>
                             {/* RGB Sliders */}
-                            <div className="space-y-4 mb-4">
+                            <div className="space-y-3 sm:space-y-4 mb-4">
                                 {/* Red Slider */}
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
                                         <label className="font-semibold text-gray-700 text-sm flex items-center gap-1">
                                             🔴 Red
                                         </label>
-                                        <span className="font-mono text-sm bg-red-100 text-red-700 px-3 py-1 rounded-lg">
+                                        <span className="font-mono text-sm bg-red-100 text-red-700 px-2 py-1 rounded-lg min-w-[3rem] text-center">
                                             {currentMix.r}
                                         </span>
                                     </div>
@@ -423,7 +792,8 @@ const ColorAlchemyGame = () => {
                                         max="255"
                                         value={currentMix.r}
                                         onChange={(e) => handleSliderChange('r', e.target.value)}
-                                        className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+                                        onTouchStart={handleTouchStart}
+                                        className="w-full h-5 sm:h-4 rounded-lg appearance-none cursor-pointer touch-manipulation slider-thumb"
                                         style={{
                                             background: `linear-gradient(to right, rgb(0,${currentMix.g},${currentMix.b}), rgb(255,${currentMix.g},${currentMix.b}))`
                                         }}
@@ -436,7 +806,7 @@ const ColorAlchemyGame = () => {
                                         <label className="font-semibold text-gray-700 text-sm flex items-center gap-1">
                                             🟢 Green
                                         </label>
-                                        <span className="font-mono text-sm bg-green-100 text-green-700 px-3 py-1 rounded-lg">
+                                        <span className="font-mono text-sm bg-green-100 text-green-700 px-2 py-1 rounded-lg min-w-[3rem] text-center">
                                             {currentMix.g}
                                         </span>
                                     </div>
@@ -446,7 +816,8 @@ const ColorAlchemyGame = () => {
                                         max="255"
                                         value={currentMix.g}
                                         onChange={(e) => handleSliderChange('g', e.target.value)}
-                                        className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+                                        onTouchStart={handleTouchStart}
+                                        className="w-full h-5 sm:h-4 rounded-lg appearance-none cursor-pointer touch-manipulation slider-thumb"
                                         style={{
                                             background: `linear-gradient(to right, rgb(${currentMix.r},0,${currentMix.b}), rgb(${currentMix.r},255,${currentMix.b}))`
                                         }}
@@ -459,7 +830,7 @@ const ColorAlchemyGame = () => {
                                         <label className="font-semibold text-gray-700 text-sm flex items-center gap-1">
                                             🔵 Blue
                                         </label>
-                                        <span className="font-mono text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-lg">
+                                        <span className="font-mono text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-lg min-w-[3rem] text-center">
                                             {currentMix.b}
                                         </span>
                                     </div>
@@ -469,7 +840,8 @@ const ColorAlchemyGame = () => {
                                         max="255"
                                         value={currentMix.b}
                                         onChange={(e) => handleSliderChange('b', e.target.value)}
-                                        className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+                                        onTouchStart={handleTouchStart}
+                                        className="w-full h-5 sm:h-4 rounded-lg appearance-none cursor-pointer touch-manipulation slider-thumb"
                                         style={{
                                             background: `linear-gradient(to right, rgb(${currentMix.r},${currentMix.g},0), rgb(${currentMix.r},${currentMix.g},255))`
                                         }}
@@ -479,42 +851,53 @@ const ColorAlchemyGame = () => {
 
                             {/* Action Buttons */}
                             <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                                     <button
                                         onClick={() => {
                                             setShowHint('direction');
                                             setHintsUsed(hintsUsed + 1);
                                         }}
-                                        className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2"
+                                        className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold py-3 sm:py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2 text-sm"
                                     >
                                         <Lightbulb className="w-4 h-4" />
-                                        Direction Hint
+                                        <span className="hidden sm:inline">Direction Hint</span>
+                                        <span className="sm:hidden">Direction</span>
                                     </button>
                                     <button
                                         onClick={() => {
                                             setShowHint('accuracy');
                                             setHintsUsed(hintsUsed + 1);
                                         }}
-                                        className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white font-bold py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2"
+                                        className="bg-gradient-to-r from-purple-400 to-indigo-500 text-white font-bold py-3 sm:py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2 text-sm"
                                     >
                                         <Trophy className="w-4 h-4" />
-                                        Accuracy Hint
+                                        <span className="hidden sm:inline">Accuracy Hint</span>
+                                        <span className="sm:hidden">Accuracy</span>
                                     </button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                                     <button
                                         onClick={handleCheckMatch}
-                                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2"
+                                        className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-3 sm:py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2 text-sm"
                                     >
                                         <CheckCircle className="w-5 h-5" />
                                         Check Match
                                     </button>
                                     <button
                                         onClick={resetColorMix}
-                                        className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2"
+                                        className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold py-3 sm:py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2 text-sm"
                                     >
                                         <Trophy className="w-4 h-4" />
                                         Reset
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                                    <button
+                                        onClick={generateNewChallenge}
+                                        className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold py-3 sm:py-3 rounded-xl hover:shadow-lg transition flex items-center justify-center gap-2 text-sm"
+                                    >
+                                        <Droplet className="w-4 h-4" />
+                                        New Challenge
                                     </button>
                                 </div>
                                 <div className="text-center text-xs text-gray-500 mt-2">
@@ -533,7 +916,10 @@ const ColorAlchemyGame = () => {
                                 {gameWon ? 'Perfect Match!' : 'Out of Attempts!'}
                             </div>
                             <div className="mb-2 text-sm">
-                                {gameWon ? `You solved it in ${attempts} attempts` : `You were ${accuracy}% close`}
+                                {gameWon 
+                                    ? `You solved it in ${attempts} attempts${targetColors.length > 1 ? ` (${targetColors.length} colors)` : ''}` 
+                                    : `You were ${accuracy}% close${targetColors.length > 1 ? ` to color ${currentColorIndex + 1}` : ''}`
+                                }
                             </div>
                             <div className="mb-4 text-sm">
                                 Hints used: {hintsUsed}
@@ -554,23 +940,70 @@ const ColorAlchemyGame = () => {
                     )}
                 </div>
 
-                <div className="bg-white/80 backdrop-blur rounded-xl p-4 text-gray-700 shadow-md">
+                <div className="bg-white/80 backdrop-blur rounded-xl p-3 sm:p-4 text-gray-700 shadow-md">
                     <div className="flex items-start gap-2">
-                        <Lightbulb className="w-5 h-5 flex-shrink-0 mt-0.5 text-purple-600" />
-                        <div className="text-sm">
+                        <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 text-purple-600" />
+                        <div className="text-xs sm:text-sm">
                             <p className="font-semibold mb-1 text-gray-800">How to Play:</p>
                             <p className="text-gray-600">Slide the RGB values freely, then click "Check Match" when ready. Use <span className="font-semibold">Direction Hint</span> for color guidance or <span className="font-semibold">Accuracy Hint</span> to see your match percentage!</p>
                         </div>
                     </div>
                 </div>
 
+                {/* Level Selection (only visible in levels mode) - Moved after game */}
+                {gameMode === 'levels' && (
+                    <div className="bg-white rounded-xl p-3 sm:p-4 shadow-md mt-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="font-bold text-gray-800 text-sm">Select Level</h3>
+                            <div className="text-xs text-gray-500">
+                                {unlockedLevels.length} of {levelSettings.length} unlocked
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1 sm:gap-2">
+                            {levelSettings.map((level, index) => {
+                                const isUnlocked = unlockedLevels.includes(index);
+                                const isCurrent = currentLevel === index;
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => isUnlocked && handleLevelSelect(index)}
+                                        disabled={!isUnlocked}
+                                        className={`p-2 sm:p-3 rounded-lg font-bold text-xs transition-all ${
+                                            isCurrent 
+                                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md' 
+                                                : isUnlocked
+                                                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                    >
+                                        <div className="text-center">
+                                            <div className="font-bold text-xs sm:text-sm">
+                                                {level.level}
+                                                {level.colorCount > 1 && (
+                                                    <span className="text-xs ml-1">({level.colorCount})</span>
+                                                )}
+                                            </div>
+                                            <div className="text-xs opacity-75 mt-1 hidden sm:block">
+                                                {level.difficulty}
+                                            </div>
+                                            {!isUnlocked && (
+                                                <div className="text-xs text-red-500 mt-1">🔒</div>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex justify-center gap-4 mt-4">
                 </div>
 
                 {showFeedbackModal && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
-                            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl p-4 sm:p-6 max-w-md w-full">
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <MessageSquare className="w-5 h-5" />
                                 Feedback
                             </h2>
