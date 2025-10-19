@@ -20,6 +20,8 @@ const ColorAlchemyGame = () => {
     const [targetColors, setTargetColors] = useState([{ r: 255, g: 255, b: 255 }]);
     const [currentColorIndex, setCurrentColorIndex] = useState(0);
     const [unlockedLevels, setUnlockedLevels] = useState([0]); // Level 1 is always unlocked
+    const [currentPage, setCurrentPage] = useState(0);
+    const levelsPerPage = 10;
     const [attempts, setAttempts] = useState(0);
     const [gameWon, setGameWon] = useState(false);
     const [hasPlayedDaily, setHasPlayedDaily] = useState(false);
@@ -30,6 +32,7 @@ const ColorAlchemyGame = () => {
     const [confettiLoaded, setConfettiLoaded] = useState(false);
     const [showHint, setShowHint] = useState(false);
     const [hintsUsed, setHintsUsed] = useState(0);
+    const [showShareModal, setShowShareModal] = useState(false);
 
 
     // Sound effect for winning - using Web Audio API for a simple beep
@@ -67,173 +70,93 @@ const ColorAlchemyGame = () => {
             });
     }, []);
 
-    // Define progressive level system with increasing difficulty and multi-color challenges
-    const levelSettings = [
-        // Single color levels (1-10)
-        { 
-            level: 1,
-            maxAttempts: 25, 
-            name: 'Level 1', 
-            difficulty: 'Very Easy',
-            colorCount: 1,
-            colorRange: { min: 50, max: 100, step: 5 },
-            description: 'Start with warm colors'
-        },
-        { 
-            level: 2,
-            maxAttempts: 22, 
-            name: 'Level 2', 
-            difficulty: 'Easy',
-            colorCount: 1,
-            colorRange: { min: 100, max: 150, step: 4 },
-            description: 'Cool color tones'
-        },
-        { 
-            level: 3,
-            maxAttempts: 20, 
-            name: 'Level 3', 
-            difficulty: 'Easy+',
-            colorCount: 1,
-            colorRange: { min: 150, max: 200, step: 3 },
-            description: 'Bright vibrant colors'
-        },
-        { 
-            level: 4,
-            maxAttempts: 18, 
-            name: 'Level 4', 
-            difficulty: 'Medium',
-            colorCount: 1,
-            colorRange: { min: 40, max: 215, step: 2 },
-            description: 'More varied color spectrum'
-        },
-        { 
-            level: 5,
-            maxAttempts: 16, 
-            name: 'Level 5', 
-            difficulty: 'Medium+',
-            colorCount: 1,
-            colorRange: { min: 20, max: 235, step: 2 },
-            description: 'Full color range unlocked'
-        },
-        { 
-            level: 6,
-            maxAttempts: 14, 
-            name: 'Level 6', 
-            difficulty: 'Hard',
-            colorCount: 1,
-            colorRange: { min: 10, max: 245, step: 1 },
-            description: 'Precision becomes important'
-        },
-        { 
-            level: 7,
-            maxAttempts: 12, 
-            name: 'Level 7', 
-            difficulty: 'Hard+',
-            colorCount: 1,
-            colorRange: { min: 5, max: 250, step: 1 },
-            description: 'Subtle color variations'
-        },
-        { 
-            level: 8,
-            maxAttempts: 10, 
-            name: 'Level 8', 
-            difficulty: 'Very Hard',
-            colorCount: 1,
-            colorRange: { min: 0, max: 255, step: 1 },
-            description: 'Master single color precision'
-        },
-        { 
-            level: 9,
-            maxAttempts: 8, 
-            name: 'Level 9', 
-            difficulty: 'Expert',
-            colorCount: 1,
-            colorRange: { min: 0, max: 255, step: 1 },
-            description: 'Ultimate single color challenge'
-        },
-        { 
-            level: 10,
-            maxAttempts: 6, 
-            name: 'Level 10', 
-            difficulty: 'Master',
-            colorCount: 1,
-            colorRange: { min: 0, max: 255, step: 1 },
-            description: 'Perfect single color mastery'
-        },
-        // Multi-color levels (11+)
-        { 
-            level: 11,
-            maxAttempts: 20, 
-            name: 'Level 11', 
-            difficulty: 'Multi-Color',
-            colorCount: 2,
-            colorRange: { min: 50, max: 205, step: 3 },
-            description: 'Match 2 colors simultaneously'
-        },
-        { 
-            level: 12,
-            maxAttempts: 18, 
-            name: 'Level 12', 
-            difficulty: 'Multi-Color',
-            colorCount: 2,
-            colorRange: { min: 30, max: 225, step: 2 },
-            description: 'Two colors, increased precision'
-        },
-        { 
-            level: 13,
-            maxAttempts: 16, 
-            name: 'Level 13', 
-            difficulty: 'Multi-Color',
-            colorCount: 2,
-            colorRange: { min: 10, max: 245, step: 1 },
-            description: 'Precise dual color matching'
-        },
-        { 
-            level: 14,
-            maxAttempts: 15, 
-            name: 'Level 14', 
-            difficulty: 'Multi-Color',
-            colorCount: 3,
-            colorRange: { min: 40, max: 215, step: 2 },
-            description: 'Three color challenge begins'
-        },
-        { 
-            level: 15,
-            maxAttempts: 12, 
-            name: 'Level 15', 
-            difficulty: 'Multi-Color',
-            colorCount: 3,
-            colorRange: { min: 20, max: 235, step: 1 },
-            description: 'Master three color harmony'
-        },
-        { 
-            level: 16,
-            maxAttempts: 10, 
-            name: 'Level 16', 
-            difficulty: 'Multi-Color',
-            colorCount: 4,
-            colorRange: { min: 30, max: 225, step: 1 },
-            description: 'Four color symphony'
-        },
-        { 
-            level: 17,
-            maxAttempts: 8, 
-            name: 'Level 17', 
-            difficulty: 'Multi-Color',
-            colorCount: 4,
-            colorRange: { min: 0, max: 255, step: 1 },
-            description: 'Ultimate four color mastery'
-        },
-        { 
-            level: 18,
-            maxAttempts: 6, 
-            name: 'Level 18', 
-            difficulty: 'Legendary',
-            colorCount: 5,
-            colorRange: { min: 0, max: 255, step: 1 },
-            description: 'Legendary five color challenge'
+    // Generate 50 levels with progressive difficulty
+    const generateLevelSettings = () => {
+        const levels = [];
+        
+        // Single color levels (1-15) - Foundation
+        for (let i = 0; i < 15; i++) {
+            const levelNum = i + 1;
+            const difficulty = i < 5 ? 'Very Easy' : i < 10 ? 'Easy' : 'Easy+';
+            const maxAttempts = Math.max(6, 30 - i * 1.5);
+            const min = Math.max(0, 50 - i * 2);
+            const max = Math.min(255, 100 + i * 8);
+            const step = i < 5 ? 5 : i < 10 ? 3 : 2;
+            
+            levels.push({
+                level: levelNum,
+                maxAttempts: Math.floor(maxAttempts),
+                name: `Level ${levelNum}`,
+                difficulty,
+                colorCount: 1,
+                colorRange: { min, max, step },
+                description: `Foundation level ${levelNum}`
+            });
         }
-    ];
+        
+        // Intermediate single color levels (16-25) - Precision
+        for (let i = 15; i < 25; i++) {
+            const levelNum = i + 1;
+            const difficulty = i < 20 ? 'Medium' : 'Medium+';
+            const maxAttempts = Math.max(4, 20 - (i - 15) * 1.2);
+            const min = Math.max(0, 20 - (i - 15) * 1);
+            const max = Math.min(255, 200 + (i - 15) * 2);
+            const step = i < 20 ? 2 : 1;
+            
+            levels.push({
+                level: levelNum,
+                maxAttempts: Math.floor(maxAttempts),
+                name: `Level ${levelNum}`,
+                difficulty,
+                colorCount: 1,
+                colorRange: { min, max, step },
+                description: `Precision level ${levelNum}`
+            });
+        }
+        
+        // Advanced single color levels (26-30) - Mastery
+        for (let i = 25; i < 30; i++) {
+            const levelNum = i + 1;
+            const difficulty = i < 28 ? 'Hard' : 'Expert';
+            const maxAttempts = Math.max(3, 12 - (i - 25) * 1.5);
+            
+            levels.push({
+                level: levelNum,
+                maxAttempts: Math.floor(maxAttempts),
+                name: `Level ${levelNum}`,
+                difficulty,
+                colorCount: 1,
+                colorRange: { min: 0, max: 255, step: 1 },
+                description: `Mastery level ${levelNum}`
+            });
+        }
+        
+        // Multi-color levels (31-50) - Advanced challenges
+        for (let i = 30; i < 50; i++) {
+            const levelNum = i + 1;
+            const colorCount = Math.min(8, Math.floor((i - 30) / 2.5) + 2);
+            const difficulty = colorCount <= 3 ? 'Multi-Color' : 
+                             colorCount <= 5 ? 'Advanced' : 
+                             colorCount <= 7 ? 'Expert' : 'Legendary';
+            const maxAttempts = Math.max(3, 15 - (i - 30) * 0.4);
+            const min = Math.max(0, 10 - (i - 30) * 0.2);
+            const max = 255;
+            
+            levels.push({
+                level: levelNum,
+                maxAttempts: Math.floor(maxAttempts),
+                name: `Level ${levelNum}`,
+                difficulty,
+                colorCount,
+                colorRange: { min: Math.floor(min), max, step: 1 },
+                description: `${colorCount} color challenge`
+            });
+        }
+        
+        return levels;
+    };
+    
+    const levelSettings = generateLevelSettings();
 
     // Generate daily seed
     const getDailySeed = () => {
@@ -284,11 +207,11 @@ const ColorAlchemyGame = () => {
         
         if (isDaily) {
             // Daily challenge uses medium difficulty
-            const target = {
-                r: Math.floor(random() * 200 + 28),
-                g: Math.floor(random() * 200 + 28),
-                b: Math.floor(random() * 200 + 28)
-            };
+        const target = {
+            r: Math.floor(random() * 200 + 28),
+            g: Math.floor(random() * 200 + 28),
+            b: Math.floor(random() * 200 + 28)
+        };
             return { target, targets: [target] };
         } else {
             // Level-based challenge uses progressive difficulty
@@ -363,26 +286,26 @@ const ColorAlchemyGame = () => {
         if (gameMode === 'daily') {
             const { target, targets } = generateColorChallenge(true);
             if (target && targets) {
-                setTargetColor(target);
+            setTargetColor(target);
                 setTargetColors(targets);
-                setCurrentMix({ r: 128, g: 128, b: 128 });
+            setCurrentMix({ r: 128, g: 128, b: 128 });
                 setCurrentColorIndex(0);
-                setAttempts(0);
-                setGameWon(false);
-                setShowHint(false);
-                setHintsUsed(0);
+            setAttempts(0);
+            setGameWon(false);
+            setShowHint(false);
+            setHintsUsed(0);
             }
         } else if (gameMode === 'levels' && currentLevel !== null) {
             const { target, targets } = generateColorChallenge(false, currentLevel);
             if (target && targets) {
-                setTargetColor(target);
+            setTargetColor(target);
                 setTargetColors(targets);
-                setCurrentMix({ r: 128, g: 128, b: 128 });
+            setCurrentMix({ r: 128, g: 128, b: 128 });
                 setCurrentColorIndex(0);
-                setAttempts(0);
-                setGameWon(false);
-                setShowHint(false);
-                setHintsUsed(0);
+            setAttempts(0);
+            setGameWon(false);
+            setShowHint(false);
+            setHintsUsed(0);
             }
         }
     }, [gameMode, currentLevel]);
@@ -560,12 +483,59 @@ const ColorAlchemyGame = () => {
         const score = gameWon ? `${attempts} attempts` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxAttempts}`;
         const today = new Date().toISOString().split('T')[0];
         const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nHints: ${hintsUsed}\nDate: ${today}\nPlay at: https://color-alchemy-game.vercel.app`;
+        const url = 'https://color-alchemy-game.vercel.app';
 
+        // Copy to clipboard
         navigator.clipboard.writeText(text);
+        alert('Results copied to clipboard!');
+    };
+
+    const shareToTwitter = () => {
+        const emoji = gameWon ? '🎯' : '😅';
+        const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
+        const score = gameWon ? `${attempts} attempts` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxAttempts}`;
+        const today = new Date().toISOString().split('T')[0];
+        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nHints: ${hintsUsed}\nDate: ${today}\nPlay at: https://color-alchemy-game.vercel.app`;
         const tweetUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(tweetUrl, '_blank');
+    };
 
-        alert('Results copied to clipboard!');
+    const shareToFacebook = () => {
+        const emoji = gameWon ? '🎯' : '😅';
+        const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
+        const score = gameWon ? `${attempts} attempts` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxAttempts}`;
+        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nHints: ${hintsUsed}`;
+        const url = 'https://color-alchemy-game.vercel.app';
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+        window.open(facebookUrl, '_blank');
+    };
+
+    const shareToLinkedIn = () => {
+        const emoji = gameWon ? '🎯' : '😅';
+        const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
+        const score = gameWon ? `${attempts} attempts` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxAttempts}`;
+        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nHints: ${hintsUsed}`;
+        const url = 'https://color-alchemy-game.vercel.app';
+        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`;
+        window.open(linkedinUrl, '_blank');
+    };
+
+    const shareToWhatsApp = () => {
+        const emoji = gameWon ? '🎯' : '😅';
+        const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
+        const score = gameWon ? `${attempts} attempts` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxAttempts}`;
+        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nHints: ${hintsUsed}\nPlay at: https://color-alchemy-game.vercel.app`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(whatsappUrl, '_blank');
+    };
+
+    const shareToReddit = () => {
+        const emoji = gameWon ? '🎯' : '😅';
+        const mode = gameMode === 'daily' ? 'Daily Challenge' : `Level ${currentLevel + 1}`;
+        const score = gameWon ? `${attempts} attempts` : `X/${gameMode === 'daily' ? 15 : levelSettings[currentLevel].maxAttempts}`;
+        const text = `Color Alchemy ${mode} ${emoji}\nScore: ${score}\nHints: ${hintsUsed}\nPlay at: https://color-alchemy-game.vercel.app`;
+        const redditUrl = `https://reddit.com/submit?url=${encodeURIComponent('https://color-alchemy-game.vercel.app')}&title=${encodeURIComponent(text)}`;
+        window.open(redditUrl, '_blank');
     };
 
     const handleLevelSelect = (level) => {
@@ -933,7 +903,12 @@ const ColorAlchemyGame = () => {
                         }`}>
                             <div className="text-3xl mb-2">{gameWon ? '🎨' : '😅'}</div>
                             <div className="text-xl font-bold mb-2">
-                                {gameWon ? 'Perfect Match!' : 'Out of Attempts!'}
+                                {gameWon 
+                                    ? (gameMode === 'levels' && currentLevel === levelSettings.length - 1) 
+                                        ? '🎉 ALL LEVELS COMPLETED! 🎉' 
+                                        : 'Perfect Match!'
+                                    : 'Out of Attempts!'
+                                }
                             </div>
                             <div className="mb-2 text-sm">
                                 {gameWon 
@@ -947,15 +922,60 @@ const ColorAlchemyGame = () => {
                             {gameMode === 'daily' && hasPlayedDaily && (
                                 <p className="text-sm mb-4">Come back tomorrow for a new challenge!</p>
                             )}
-                            <button
-                                onClick={shareResults}
-                                className={`bg-white font-bold px-4 py-1 rounded-lg hover:bg-gray-100 transition inline-flex items-center gap-2 ${
-                                    gameWon ? 'text-green-600' : 'text-red-600'
-                                }`}
-                            >
-                                <Share2 className="w-3 h-3" />
-                                Share Results
-                            </button>
+                            {gameMode === 'levels' && gameWon && currentLevel === levelSettings.length - 1 && (
+                                <p className="text-sm mb-4">🏆 Congratulations! You've mastered all 50 levels! 🏆</p>
+                            )}
+                            
+                            {/* Action buttons for completion screen */}
+                            <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+                                {gameMode === 'levels' && gameWon && currentLevel !== null && currentLevel < levelSettings.length - 1 && (
+                                    <button
+                                        onClick={() => {
+                                            const nextLevel = currentLevel + 1;
+                                            handleLevelSelect(nextLevel);
+                                        }}
+                                        className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold px-6 py-2 rounded-lg hover:shadow-lg transition flex items-center gap-2"
+                                    >
+                                        <Trophy className="w-4 h-4" />
+                                        Next Level ({currentLevel + 2})
+                                    </button>
+                                )}
+                                
+                                {(gameMode === 'levels' && (!gameWon || currentLevel === levelSettings.length - 1)) && (
+                                    <button
+                                        onClick={() => {
+                                            if (gameMode === 'levels' && currentLevel !== null) {
+                                                // Play again with same level
+                                                const { target, targets } = generateColorChallenge(false, currentLevel);
+                                                if (target && targets) {
+                                                    setTargetColor(target);
+                                                    setTargetColors(targets);
+                                                }
+                                                setCurrentMix({ r: 128, g: 128, b: 128 });
+                                                setAttempts(0);
+                                                setGameWon(false);
+                                                setShowHint(false);
+                                                setHintsUsed(0);
+                                                setCurrentColorIndex(0);
+                                            }
+                                        }}
+                                        className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold px-6 py-2 rounded-lg hover:shadow-lg transition flex items-center gap-2"
+                                    >
+                                        <Droplet className="w-4 h-4" />
+                                        Play Again
+                                    </button>
+                                )}
+                                
+                                <button
+                                    onClick={() => setShowShareModal(true)}
+                                    className={`bg-white font-bold px-4 py-2 rounded-lg hover:bg-gray-100 transition inline-flex items-center gap-2 ${
+                                        gameWon ? 'text-green-600' : 'text-red-600'
+                                    }`}
+                                >
+                                    <Share2 className="w-4 h-4" />
+                                    Share Results
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -979,40 +999,65 @@ const ColorAlchemyGame = () => {
                                 {unlockedLevels.length} of {levelSettings.length} unlocked
                             </div>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-1 sm:gap-2">
-                            {levelSettings.map((level, index) => {
-                                const isUnlocked = unlockedLevels.includes(index);
-                                const isCurrent = currentLevel === index;
-                                return (
-                                    <button
-                                        key={index}
-                                        onClick={() => isUnlocked && handleLevelSelect(index)}
-                                        disabled={!isUnlocked}
-                                        className={`p-2 sm:p-3 rounded-lg font-bold text-xs transition-all ${
-                                            isCurrent 
-                                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md' 
-                                                : isUnlocked
-                                                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    : 'bg-gray-50 text-gray-400 cursor-not-allowed'
-                                        }`}
-                                    >
-                                        <div className="text-center">
-                                            <div className="font-bold text-xs sm:text-sm">
-                                                {level.level}
-                                                {level.colorCount > 1 && (
-                                                    <span className="text-xs ml-1">({level.colorCount})</span>
+                        
+                        {/* Pagination Controls */}
+                        <div className="flex justify-center items-center gap-2 mb-4">
+                            <button
+                                onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
+                                disabled={currentPage === 0}
+                                className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+                            >
+                                ← Prev
+                            </button>
+                            <span className="text-xs text-gray-600">
+                                Page {currentPage + 1} of {Math.ceil(levelSettings.length / levelsPerPage)}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(Math.min(Math.ceil(levelSettings.length / levelsPerPage) - 1, currentPage + 1))}
+                                disabled={currentPage >= Math.ceil(levelSettings.length / levelsPerPage) - 1}
+                                className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+                            >
+                                Next →
+                            </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1 sm:gap-2">
+                            {levelSettings
+                                .slice(currentPage * levelsPerPage, (currentPage + 1) * levelsPerPage)
+                                .map((level, index) => {
+                                    const actualIndex = currentPage * levelsPerPage + index;
+                                    const isUnlocked = unlockedLevels.includes(actualIndex);
+                                    const isCurrent = currentLevel === actualIndex;
+                                    return (
+                                        <button
+                                            key={actualIndex}
+                                            onClick={() => isUnlocked && handleLevelSelect(actualIndex)}
+                                            disabled={!isUnlocked}
+                                            className={`p-2 rounded-lg font-bold text-xs transition-all ${
+                                                isCurrent 
+                                                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md' 
+                                                    : isUnlocked
+                                                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                        : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                                            }`}
+                                        >
+                                            <div className="text-center">
+                                                <div className="font-bold text-xs">
+                                                    {level.level}
+                                                    {level.colorCount > 1 && (
+                                                        <span className="text-xs ml-1">({level.colorCount})</span>
+                                                    )}
+                                                </div>
+                                                <div className="text-xs opacity-75 mt-1 hidden sm:block">
+                                                    {level.difficulty}
+                                                </div>
+                                                {!isUnlocked && (
+                                                    <div className="text-xs text-red-500 mt-1">🔒</div>
                                                 )}
                                             </div>
-                                            <div className="text-xs opacity-75 mt-1 hidden sm:block">
-                                                {level.difficulty}
-                                            </div>
-                                            {!isUnlocked && (
-                                                <div className="text-xs text-red-500 mt-1">🔒</div>
-                                            )}
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                                        </button>
+                                    );
+                                })}
                         </div>
                     </div>
                 )}
@@ -1069,6 +1114,88 @@ const ColorAlchemyGame = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* Share Modal */}
+                {showShareModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <Share2 className="w-5 h-5" />
+                                Share Your Results
+                            </h2>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => {
+                                        shareToTwitter();
+                                        setShowShareModal(false);
+                                    }}
+                                    className="flex items-center gap-2 p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                                >
+                                    <span className="text-lg">🐦</span>
+                                    <span className="text-sm font-medium">Twitter</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        shareToFacebook();
+                                        setShowShareModal(false);
+                                    }}
+                                    className="flex items-center gap-2 p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    <span className="text-lg">📘</span>
+                                    <span className="text-sm font-medium">Facebook</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        shareToLinkedIn();
+                                        setShowShareModal(false);
+                                    }}
+                                    className="flex items-center gap-2 p-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
+                                >
+                                    <span className="text-lg">💼</span>
+                                    <span className="text-sm font-medium">LinkedIn</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        shareToWhatsApp();
+                                        setShowShareModal(false);
+                                    }}
+                                    className="flex items-center gap-2 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                                >
+                                    <span className="text-lg">📱</span>
+                                    <span className="text-sm font-medium">WhatsApp</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        shareToReddit();
+                                        setShowShareModal(false);
+                                    }}
+                                    className="flex items-center gap-2 p-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+                                >
+                                    <span className="text-lg">🤖</span>
+                                    <span className="text-sm font-medium">Reddit</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        shareResults();
+                                        setShowShareModal(false);
+                                    }}
+                                    className="flex items-center gap-2 p-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+                                >
+                                    <span className="text-lg">📋</span>
+                                    <span className="text-sm font-medium">Copy Link</span>
+                                </button>
+                            </div>
+                            <div className="flex justify-end mt-4">
+                                <button
+                                    onClick={() => setShowShareModal(false)}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
